@@ -23,23 +23,28 @@ public class Membership {
      * @throws IllegalArgumentException 当参数无效时抛出异常
      */
     public Membership(Date joinDate, String role, User user, Household household) {
-        if (joinDate == null) {
-            throw new IllegalArgumentException("加入日期不能为空");
-        }
-        if (role == null || role.trim().isEmpty()) {
-            throw new IllegalArgumentException("角色不能为空");
-        }
-        if (user == null) {
-            throw new IllegalArgumentException("用户对象不能为空");
-        }
-        if (household == null) {
-            throw new IllegalArgumentException("家庭对象不能为空");
-        }
+        try{
+            if (joinDate == null) {
+                throw new IllegalArgumentException("加入日期不能为空");
+            }
+            if (role == null || role.trim().isEmpty()) {
+                throw new IllegalArgumentException("角色不能为空");
+            }
+            if (user == null) {
+                throw new IllegalArgumentException("用户对象不能为空");
+            }
+            if (household == null) {
+                throw new IllegalArgumentException("家庭对象不能为空");
+            }
 
-        this.joinDate = new Date(joinDate.getTime()); // 创建副本以防止外部修改
-        this.role = role.trim();
-        this.user = user;
-        this.household = household;
+            this.joinDate = new Date(joinDate.getTime()); // 创建副本以防止外部修改
+            this.role = role.trim();
+            this.user = user;
+            this.household = household;
+        }
+        catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**

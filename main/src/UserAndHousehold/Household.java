@@ -2,6 +2,9 @@ package UserAndHousehold;
 
 import AutomatedWorkflow.*;
 import DeviceEquipment.Device;
+import NormalException.CannotDoException;
+import NormalException.CannotFindException;
+import NormalException.RepeatedException;
 
 import java.util.*;
 
@@ -24,14 +27,19 @@ public class Household {
      * @param address 家庭地址
      */
     public Household(int householdId, String address) {
-        if (householdId <= 0) {
-            throw new IllegalArgumentException("家庭ID必须为正数");
+        try{
+            if (householdId <= 0) {
+                throw new IllegalArgumentException("家庭ID必须为正数");
+            }
+            if (address == null || address.trim().isEmpty()) {
+                throw new IllegalArgumentException("家庭地址不能为空");
+            }
+            this.householdId = householdId;
+            this.address = address;
         }
-        if (address == null || address.trim().isEmpty()) {
-            throw new IllegalArgumentException("家庭地址不能为空");
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
-        this.householdId = householdId;
-        this.address = address;
     }
 
     /**
@@ -42,26 +50,31 @@ public class Household {
      * @throws IllegalArgumentException 当参数无效时抛出异常
      */
     public void addUser(User user, String role) {
-        if (user == null) {
-            throw new IllegalArgumentException("用户对象不能为空");
-        }
-        if (role == null || role.trim().isEmpty()) {
-            throw new IllegalArgumentException("角色不能为空");
-        }
-
-        for(Membership membership : memberships.values()){
-            if(membership.getUser().equals(user)){
-                // 如果用户已存在，更新其角色
-                membership.setRole(role);
-                return;
+        try{
+            if (user == null) {
+                throw new IllegalArgumentException("用户对象不能为空");
             }
-        }
+            if (role == null || role.trim().isEmpty()) {
+                throw new IllegalArgumentException("角色不能为空");
+            }
 
-        // 创建用户加入组织的会员关系
-        Date joinDate = new Date();
-        Membership membership = new Membership(joinDate, role, user, this);
-        memberships.put(membership.getUser().getUserId(), membership);
-        user.addMembership(membership);
+            for(Membership membership : memberships.values()){
+                if(membership.getUser().equals(user)){
+                    // 如果用户已存在，更新其角色
+                    membership.setRole(role);
+                    return;
+                }
+            }
+
+            // 创建用户加入组织的会员关系
+            Date joinDate = new Date();
+            Membership membership = new Membership(joinDate, role, user, this);
+            memberships.put(membership.getUser().getUserId(), membership);
+            user.addMembership(membership);
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 
@@ -70,30 +83,31 @@ public class Household {
      * @param user 需要移除的用户对象
      */
     public void removeUser(User  user){
-        if(user == null){
-            System.out.println("用户对象不能为空");
-            return;
-        }
-
-        boolean isExist = false;
-
-        // 遍历所有成员资格，查找并移除与指定用户相关的成员资格
-        Iterator<Membership> iterator = memberships.values().iterator();
-        while (iterator.hasNext()) {
-            Membership membership = iterator.next();
-            if (membership.getUser().equals(user)) {
-                iterator.remove();
-                user.removeMembership(membership);
-                isExist = true;
+        try{
+            if(user == null){
+                throw new IllegalArgumentException("用户对象不能为空");
             }
+
+            // 遍历所有成员资格，查找并移除与指定用户相关的成员资格
+            Iterator<Membership> iterator = memberships.values().iterator();
+            while (iterator.hasNext()) {
+                Membership membership = iterator.next();
+                if (membership.getUser().equals(user)) {
+                    iterator.remove();
+                    user.removeMembership(membership);
+                    System.out.println("用户已移除");
+                    return;
+                }
+            }
+
+            // 如果用户不存在，则返回
+            throw new CannotDoException("用户不存在");
+
         }
 
-        // 如果用户不存在，则返回
-        if(!isExist){
-            System.out.println("用户不存在");
-            return;
+        catch (Exception e) {
+            System.out.println(e.getMessage());
         }
-        System.out.println("用户已移除");
     }
 
     /**
@@ -110,41 +124,46 @@ public class Household {
      * @param room 要添加的房间对象
      */
     public void addRoom(Room room){
-        if(room == null){
-            System.out.println("房间对象不能为空");
-            return;
-        }
+        try{
+            if(room == null){
+                throw new IllegalArgumentException("房间对象不能为空");
+            }
 
-        if(rooms.containsKey(room.getRoomId())){
-            System.out.println("房间已存在");
-            return;
-        }
+            if(rooms.containsKey(room.getRoomId())){
+                throw new RepeatedException("房间已存在");
+            }
 
-        rooms.put(room.getRoomId(), room);
+            rooms.put(room.getRoomId(), room);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    /**
+        /**
      * 根据房间ID移除房间
      * @param roomId 要移除的房间的ID
      */
     public void removeRoom(int roomId){
-        boolean isExist = false;
-
-        Iterator<Room> iterator = rooms.values().iterator();
-        while (iterator.hasNext()) {
-            Room room = iterator.next();
-            if(room.getRoomId() == roomId){
-                iterator.remove();
-                isExist = true;
+        try{
+            // 遍历所有房间，查找并移除指定ID的房间
+            Iterator<Room> iterator = rooms.values().iterator();
+            while (iterator.hasNext()) {
+                Room room = iterator.next();
+                if(room.getRoomId() == roomId){
+                    iterator.remove();
+                    System.out.println("房间已移除");
+                    return;
+                }
             }
+            throw new CannotDoException("房间不存在");
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
-        if(!isExist){
-            System.out.println("房间不存在");
-            return;
-        }
-        System.out.println("房间已移除");
     }
+
 
     /**
      * 获取房间列表
@@ -161,42 +180,51 @@ public class Household {
      * @param autoScene 要添加的自动化场景对象
      */
     public void addAutoScene(AutomationScene autoScene){
-        if(autoScene == null){
-            System.out.println("自动化场景对象不能为空");
-            return;
-        }
-
-        for(AutomationScene theAutoScene : autoScenes.values()){
-            if(theAutoScene.equals(autoScene)){
-                System.out.println("自动化场景已存在");
-                return;
+        try{
+            // 验证输入参数是否为空
+            if(autoScene == null){
+                throw new IllegalArgumentException("自动化场景对象不能为空");
             }
-        }
 
-        autoScenes.put(autoScene.getSceneId(), autoScene);
+            // 检查是否存在重复的自动化场景
+            for(AutomationScene theAutoScene : autoScenes.values()){
+                if(theAutoScene.equals(autoScene)){
+                    throw new RepeatedException("自动化场景已存在");
+                }
+            }
+
+            // 将自动化场景添加到映射中
+            autoScenes.put(autoScene.getSceneId(), autoScene);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    /**
+        /**
      * 根据自动场景ID移除指定的自动场景
      * @param autoSceneId 要移除的自动场景的ID
      */
     public void removeAutoScene(int autoSceneId){
-        boolean isExist = false;
-
-        Iterator<AutomationScene> iterator = autoScenes.values().iterator();
-        while (iterator.hasNext()) {
-            AutomationScene autoScene = iterator.next();
-            if(autoScene.getSceneId() == autoSceneId){
-                iterator.remove();
-                isExist = true;
+        try{
+            // 遍历自动场景集合，查找并移除指定ID的场景
+            Iterator<AutomationScene> iterator = autoScenes.values().iterator();
+            while (iterator.hasNext()) {
+                AutomationScene autoScene = iterator.next();
+                if(autoScene.getSceneId() == autoSceneId){
+                    iterator.remove();
+                    System.out.println("自动化场景已移除");
+                    return;
+                }
             }
+            throw new CannotDoException("自动化场景不存在");
         }
-        if(!isExist){
-            System.out.println("自动化场景不存在");
-            return;
+        catch (Exception e) {
+            System.out.println(e.getMessage());
         }
-        System.out.println("自动化场景已移除");
+
     }
+
 
     /**
      * 获取自动化场景列表
@@ -213,12 +241,18 @@ public class Household {
      * @return 返回找到的自动化场景对象，如果未找到则返回null
      */
     public AutomationScene findAutoSceneById(int autoSceneId) {
-        for (AutomationScene autoScene : autoScenes.values()) {
-            if (autoScene.getSceneId() == autoSceneId) {
-                return autoScene;
+        try{
+            for (AutomationScene autoScene : autoScenes.values()) {
+                if (autoScene.getSceneId() == autoSceneId) {
+                    return autoScene;
+                }
             }
+            throw new CannotFindException("自动化场景不存在");
         }
-        return null;
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -257,7 +291,7 @@ public class Household {
      */
     @Override
     public String toString(){
-        return "Household{HouseholdId=" + householdId + ", Address=" + address + "}";
+        return "Household{HouseholdId='" + householdId + ", Address='" + address + "}";
     }
 
     /**

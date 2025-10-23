@@ -95,7 +95,7 @@ public abstract class Device {
      */
     @Override
     public String toString(){
-        return "Device{DeviceId=" + deviceId + ", Name=" + name + ", isOnline=" + isOnline + ", powerStatus=" + powerStatus + "}";
+        return "Device{DeviceId='" + deviceId + ", Name='" + name + ", isOnline='" + isOnline + ", powerStatus='" + powerStatus + "}";
     }
 
     /**

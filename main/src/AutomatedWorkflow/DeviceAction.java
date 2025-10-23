@@ -30,27 +30,31 @@ public class DeviceAction {
      * - setTemperature: 设置空调目标温度（仅适用于空调设备）
      */
     public void execute() {
-        // 检查设备是否存在
-        if (device == null) {
-            return;
-        }
+        try{
+            // 检查设备是否存在
+            if (device == null) {
+                throw new IllegalArgumentException("设备不存在");
+            }
 
-        // 根据命令类型执行相应的操作
-        if (command.equals("powerOn")) {
-            device.powerOn();
-        } else if (command.equals("powerOff")) {
-            device.powerOff();
-        } else if (command.equals("setTemperature") && parameters != null) {
-            try {
+            // 根据命令类型执行相应的操作
+            if (command.equals("powerOn")) {
+                device.powerOn();
+            } else if (command.equals("powerOff")) {
+                device.powerOff();
+            } else if (command.equals("setTemperature") && parameters != null) {
                 double temp = Double.parseDouble(parameters);
                 // 检查设备是否为空调类型，如果是则设置目标温度
                 if (device instanceof AirConditioner) {
                     ((AirConditioner) device).setTargetTemp(temp);
+                    System.out.println("已设置空调目标温度为：" + temp + "℃");
+                    return;
                 }
-            } catch (NumberFormatException e) {
                 // 忽略无效的温度参数
-                System.out.println("输入不合法: " + parameters);
+                throw new IllegalArgumentException("无效的温度参数");
             }
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
     }
 

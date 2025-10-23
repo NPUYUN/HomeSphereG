@@ -124,11 +124,11 @@ IDE 中：右键HomeSphereSystemTest.java > Run Tests，自动执行 17 个测�
 
 ## 引用
 如果该项目对您有帮助，请引用：
-```
+``` html
 @software{HomeSphereG,
   author = {NPUYUN},
   title = {HomeSphereG},
-  year = {2023},
-  url = {https://github.com/26506/HomeSphereG}
+  year = {2025},
+  url = {https://github.com/NPUYUN/HomeSphereG}
 }
 ```

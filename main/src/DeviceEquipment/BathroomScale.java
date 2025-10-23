@@ -35,10 +35,15 @@ public class BathroomScale extends Device {
      * @param bodyMass 体重
      */
     public void setBodyMass(double bodyMass) {
-        if (bodyMass < 0) {
-            throw new IllegalArgumentException("体重不能为负数");
+        try{
+            if (bodyMass < 0) {
+                throw new IllegalArgumentException("体重不能为负数");
+            }
+            this.bodyMass = bodyMass;
         }
-        this.bodyMass = bodyMass;
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -54,9 +59,14 @@ public class BathroomScale extends Device {
      * @param batteryLevel 电量
      */
     public void setBatteryLevel(int batteryLevel) {
-        if (batteryLevel < 0 || batteryLevel > 100) {
-            throw new IllegalArgumentException("电量应在0-100之间");
+        try{
+            if (batteryLevel < 0 || batteryLevel > 100) {
+                throw new IllegalArgumentException("电量应在0-100之间");
+            }
+            this.batteryLevel = batteryLevel;
         }
-        this.batteryLevel = batteryLevel;
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 }

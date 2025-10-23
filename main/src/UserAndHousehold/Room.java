@@ -1,6 +1,7 @@
 package UserAndHousehold;
 
 import DeviceEquipment.*;
+import NormalException.RepeatedException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,17 +35,20 @@ public class Room {
      * @param device 要添加的设备对象
      */
     public void addDevice(Device device){
-        if (device == null) {
-            System.out.println("设备对象不能为空");
-            return;
-        }
-        if (devices.containsKey(device.getDeviceId())) {
-            System.out.println("设备已存在");
-            return;
-        }
+        try{
+            if (device == null) {
+                throw new IllegalArgumentException("设备不能为空");
+            }
+            if (devices.containsKey(device.getDeviceId())) {
+                throw new RepeatedException("设备已存在");
+            }
 
-        // 将设备添加到设备映射中，以设备ID为键
-        devices.put(device.getDeviceId(), device);
+            // 将设备添加到设备映射中，以设备ID为键
+            devices.put(device.getDeviceId(), device);
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
 
@@ -53,17 +57,18 @@ public class Room {
      * @param deviceId 要删除的设备ID
      */
     public void removeDevice(int deviceId){
-        boolean isExist = false;
+        try{
+            if (devices.containsKey(deviceId)) {
+                System.out.println("设备已删除");
+                devices.remove(deviceId);
+                return;
+            }
+            throw new IllegalArgumentException("设备不存在");
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
 
-        if (devices.containsKey(deviceId)) {
-            devices.remove(deviceId);
-            isExist = true;
-        }
-        if (isExist) {
-            System.out.println("设备已删除");
-            return;
-        }
-        System.out.println("设备不存在");
     }
 
 

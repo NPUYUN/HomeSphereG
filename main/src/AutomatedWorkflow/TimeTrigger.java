@@ -38,37 +38,45 @@ public class TimeTrigger implements Trigger{
      */
     @Override
     public void evaluate(){
-        // 解析激活日期和时间范围
-        String[] dates = activeDays.split("、");
-        String[] times = timeExpr.split("~");
+        try{
+            // 解析激活日期和时间范围
+            String[] dates = activeDays.split("、");
+            String[] times = timeExpr.split("~");
+            if(dates.length < 4 || times.length != 2){
+                throw new IllegalArgumentException("时间参数有误！");
+            }
 
-        LocalDate now = LocalDate.now();
-        String datOfWeek = now.getDayOfWeek().getDisplayName(TextStyle.FULL , Locale.getDefault());
+            LocalDate now = LocalDate.now();
+            String datOfWeek = now.getDayOfWeek().getDisplayName(TextStyle.FULL , Locale.getDefault());
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        boolean isActive = false;
+            boolean isActive = false;
 
-        // 遍历所有激活日期和时间范围，判断当前时间是否满足条件
-        for(String date : dates){
-            if(datOfWeek.equals(date)){
-                LocalDate startTime = LocalDate.parse(times[0], formatter);
-                LocalDate endTime = LocalDate.parse(times[1], formatter);
-                if(now.isAfter(startTime) && now.isBefore(endTime)){
-                    isActive = true;
-                    break;
+            // 遍历所有激活日期和时间范围，判断当前时间是否满足条件
+            for(String date : dates){
+                if(datOfWeek.equals(date)){
+                    LocalDate startTime = LocalDate.parse(times[0], formatter);
+                    LocalDate endTime = LocalDate.parse(times[1], formatter);
+                    if(now.isAfter(startTime) && now.isBefore(endTime)){
+                        isActive = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        // 根据评估结果设置触发器状态并输出日志
-        if(isActive) {
-            System.out.println("时间触发器已激活");
-            this.isActive = true;
+            // 根据评估结果设置触发器状态并输出日志
+            if(isActive) {
+                System.out.println("时间触发器已激活");
+                this.isActive = true;
+            }
+            else {
+                System.out.println("时间触发器未激活");
+                this.isActive = false;
+            }
         }
-        else {
-            System.out.println("时间触发器未激活");
-            this.isActive = false;
+        catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
         }
     }
 

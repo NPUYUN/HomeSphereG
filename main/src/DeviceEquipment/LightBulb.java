@@ -46,14 +46,20 @@ public class LightBulb extends Device implements EnergyReporting {
      */
     @Override
     public double getReport(Date startTime, Date endTime) {
-        // 检查时间参数有效性
-        if (startTime == null || endTime == null || startTime.after(endTime)) {
+        try{
+            // 检查时间参数有效性
+            if (startTime == null || endTime == null || startTime.after(endTime)) {
+                throw new IllegalArgumentException("时间参数无效");
+            }
+
+            // 计算耗电量：功率 × 时间差(毫秒转秒)
+            // 通过功率乘以运行时间（秒）来计算能耗值
+            return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println("时间参数无效");
             return 0;
         }
-
-        // 计算耗电量：功率 × 时间差(毫秒转秒)
-        // 通过功率乘以运行时间（秒）来计算能耗值
-        return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
     }
 
 
@@ -62,10 +68,15 @@ public class LightBulb extends Device implements EnergyReporting {
      * @param brightness 亮度值
      */
     public void setBrightness(int brightness) {
-        if (brightness < 0 || brightness > 100) {
-            throw new IllegalArgumentException("亮度值必须在0-100之间");
+        try{
+            if (brightness < 0 || brightness > 100) {
+                throw new IllegalArgumentException("亮度值必须在0-100之间");
+            }
+            this.brightness = brightness;
         }
-        this.brightness = brightness;
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -81,10 +92,15 @@ public class LightBulb extends Device implements EnergyReporting {
      * @param colorTemp 颜色温度值
      */
     public void setColorTemp(int colorTemp) {
-        if (colorTemp < 1000 || colorTemp > 10000) {
-            throw new IllegalArgumentException("色温值必须在1000K-10000K之间");
+        try{
+            if (colorTemp < 1000 || colorTemp > 10000) {
+                throw new IllegalArgumentException("色温值必须在1000K-10000K之间");
+            }
+            this.colorTemp = colorTemp;
         }
-        this.colorTemp = colorTemp;
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**

@@ -1,5 +1,9 @@
 package DeviceEquipment;
 
+import NormalException.CannotDoException;
+import NormalException.CannotFindException;
+import NormalException.RepeatedException;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,17 +43,20 @@ public class Manufacturer {
      * @param device 设备
      */
     public void addDevice(Device device) {
-        if (device == null) {
-            System.out.println("设备不能为空");
-            return;
-        }
+        try{
+            if (device == null) {
+                throw new IllegalArgumentException("设备不能为空");
+            }
 
-        if (devices.containsKey(device.getDeviceId())) {
-            System.out.println("该设备已存在");
-            return;
-        }
+            if (devices.containsKey(device.getDeviceId())) {
+                throw new RepeatedException("设备已存在");
+            }
 
-        devices.put(device.getDeviceId(), device);
+            devices.put(device.getDeviceId(), device);
+        }
+        catch (RepeatedException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -57,19 +64,19 @@ public class Manufacturer {
      * @param device 设备
      */
     public void removeDevice(Device device) {
-        boolean isExited = false;
-
-        for(Device theDevice : devices.values()){
-            if(theDevice.equals(device)){
-                devices.remove(theDevice.getDeviceId());
-                isExited = true;
-                break;
+        try{
+            for(Device theDevice : devices.values()){
+                if(theDevice.equals(device)){
+                    devices.remove(theDevice.getDeviceId());
+                    System.out.println("删除成功");
+                    return;
+                }
             }
+            throw new CannotFindException("未找到该设备");
         }
-        if(!isExited){
-            System.out.println("未找到该设备");
+        catch (CannotFindException e) {
+            System.out.println(e.getMessage());
         }
-        System.out.println("删除成功");
     }
 
     /**

@@ -14,6 +14,15 @@ public class DeviceStatusTrigger implements Trigger{
     private boolean isActive;
 
     /**
+     * 构造函数
+     * @param device 设备
+     * @param condition 触发条件
+     */
+    public DeviceStatusTrigger(Device device, String condition) {
+        this.device = device;
+        this.condition = condition;
+    }
+    /**
      * 获取触发器状态
      * @return 触发器状态
      */

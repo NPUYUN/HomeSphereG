@@ -1,6 +1,9 @@
 import AutomatedWorkflow.*;
 import DeviceEquipment.*;
 import EmissionReduction.EnergyReporting;
+import NormalException.CannotDoException;
+import NormalException.CannotFindException;
+import NormalException.RepeatedException;
 import UserAndHousehold.*;
 
 import java.util.*;
@@ -38,25 +41,29 @@ public class HomeSphereSystem {
      * @return 注册成功的用户对象，如果用户已存在则返回null
      */
     public User register(String loginName, String loginPassword, String userName, String phoneNumber) {
-        // 检查必要参数是否为空
-        if (loginName == null || loginName.trim().isEmpty() ||
-                loginPassword == null || loginPassword.trim().isEmpty()) {
-            System.out.println("登录名和密码不能为空！");
+        try{
+            // 检查必要参数是否为空
+            if (loginName == null || loginName.trim().isEmpty() ||
+                    loginPassword == null || loginPassword.trim().isEmpty()) {
+                throw new IllegalArgumentException("参数不能为空！");
+            }
+
+            // 检查用户是否已存在
+            for (User user : users.values()) {
+                if (user.getLoginName().equals(loginName)) {
+                    throw new RepeatedException("用户已存在！");
+                }
+            }
+
+            // 创建新用户并添加到用户映射中
+            User user = new User(users.size() + 1, loginName, loginPassword, userName, phoneNumber);
+            users.put(user.getUserId(), user);
+            return user;
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
             return null;
         }
-
-        // 检查用户是否已存在
-        for (User user : users.values()) {
-            if (user.getLoginName().equals(loginName)) {
-                System.out.println("用户已存在！");
-                return null;
-            }
-        }
-
-        // 创建新用户并添加到用户映射中
-        User user = new User(users.size() + 1, loginName, loginPassword, userName, phoneNumber);
-        users.put(user.getUserId(), user);
-        return user;
     }
 
 
@@ -67,24 +74,26 @@ public class HomeSphereSystem {
      * @param loginPassword 登录密码
      */
     public void login(String loginName, String loginPassword) {
-        // 参数验证
-        if (loginName == null || loginPassword == null) {
-            System.out.println("用户名或密码不能为空！");
-            return;
-        }
-
-        // 遍历用户映射查找匹配的用户名和密码
-        for (User user : users.values()) {
-            if (user.getLoginName().equals(loginName) && user.getLoginPassword().equals(loginPassword)) {
-                currentUser = user;
-                System.out.println("登录成功！欢迎 " + user.getUserName());
-                return;
+        try{
+            // 参数验证
+            if (loginName == null || loginPassword == null) {
+                throw new IllegalArgumentException("参数不能为空！");
             }
+
+            // 遍历用户映射查找匹配的用户名和密码
+            for (User user : users.values()) {
+                if (user.getLoginName().equals(loginName) && user.getLoginPassword().equals(loginPassword)) {
+                    currentUser = user;
+                    System.out.println("登录成功！欢迎 " + user.getUserName());
+                    return;
+                }
+            }
+            System.out.println("登录失败！用户名或密码错误。");
         }
-        System.out.println("登录失败！用户名或密码错误。");
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
-
-
 
     /**
      * 用户退出登录功能
@@ -102,7 +111,17 @@ public class HomeSphereSystem {
      */
     public User findUserById(int userId){
         // 直接通过键查找用户
-        return users.get(userId);
+        User user = users.get(userId);
+        try{
+            if(user == null){
+                throw new CannotFindException("用户不存在！");
+            }
+            return user;
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -121,17 +140,22 @@ public class HomeSphereSystem {
      * @return 创建的家庭户对象
      */
     public Household addHousehold(String address) {
-        // 参数验证
-        if (address == null || address.trim().isEmpty()) {
-            System.out.println("地址信息不能为空！");
+        try{
+            // 参数验证
+            if (address == null || address.trim().isEmpty()) {
+                throw new IllegalArgumentException("地址不能为空！");
+            }
+
+            // 生成唯一ID
+            int newId = generateUniqueHouseholdId();
+            Household household = new Household(newId, address);
+            households.put(household.getHouseholdId(), household);
+            return household;
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
             return null;
         }
-
-        // 生成唯一ID
-        int newId = generateUniqueHouseholdId();
-        Household household = new Household(newId, address);
-        households.put(household.getHouseholdId(), household);
-        return household;
     }
 
    /**
@@ -156,13 +180,18 @@ public class HomeSphereSystem {
      * @param householdId 户主ID，用于标识要删除的户主
      */
     public void removeHousehold(int householdId){
-        // 检查要删除的户主是否存在
-        if(findHouseholdById(householdId) == null){
-            System.out.println("户主不存在！");
-        }
+        try{
+            // 检查要删除的户主是否存在
+            if(findHouseholdById(householdId) == null){
+                throw new CannotFindException("户主不存在！");
+            }
 
-        // 从户主映射中移除指定的户主
-        households.remove(householdId);
+            // 从户主映射中移除指定的户主
+            households.remove(householdId);
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -178,28 +207,30 @@ public class HomeSphereSystem {
      * @param userId 要删除的用户ID
      */
     public void removeUser(int userId) {
-        // 检查用户是否存在
-        User userToRemove = findUserById(userId);
-        if (userToRemove == null) {
-            System.out.println("用户不存在！");
-            return;
-        }
+        try{
+            // 检查用户是否存在
+            User userToRemove = findUserById(userId);
+            if (userToRemove == null) {
+                throw new CannotFindException("用户不存在！");
+            }
 
-        // 检查是否为当前用户，禁止删除自己
-        if (currentUser != null && currentUser.getUserId() == userId) {
-            System.out.println("不能删除当前用户！");
-            return;
-        }
+            // 检查是否为当前用户，禁止删除自己
+            if (currentUser != null && currentUser.getUserId() == userId) {
+                throw new CannotDoException("不能删除自己！");
+            }
 
-        // 检查是否为超级用户，禁止删除超级用户
-        if (userId == 0) {
-            System.out.println("不能删除超级用户！");
-            return;
-        }
+            // 检查是否为超级用户，禁止删除超级用户
+            if (userId == 0) {
+                throw new CannotDoException("不能删除超级用户！");
+            }
 
-        // 执行删除操作
-        users.remove(userId);
-        System.out.println("用户删除成功！");
+            // 执行删除操作
+            users.remove(userId);
+            System.out.println("用户删除成功！");
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
 
@@ -226,24 +257,27 @@ public class HomeSphereSystem {
      * @param householdId 家庭ID，用于查找对应的家庭对象
      */
     public void listDeviceByHousehold(int householdId) {
-        // 查找指定ID的家庭对象
-        Household household = findHouseholdById(householdId);
-        if (household == null) {
-            System.out.println("未找到ID为 " + householdId + " 的家庭！");
-            return;
-        }
+        try{
+            // 查找指定ID的家庭对象
+            Household household = findHouseholdById(householdId);
+            if (household == null) {
+                throw new CannotFindException("家庭不存在！");
+            }
 
-        // 检查是否有设备
-        List<Device> devices = household.listAllDevices();
-        if (devices.isEmpty()) {
-            System.out.println("该家庭下没有设备。");
-            return;
-        }
+            // 检查是否有设备
+            List<Device> devices = household.listAllDevices();
+            if (devices.isEmpty()) {
+                throw new CannotFindException("该家庭没有设备！");
+            }
 
-        // 遍历并打印该家庭下的所有设备
-        System.out.println("家庭 " + householdId + " 下的设备列表：");
-        for (Device device : devices) {
-            System.out.println(device);
+            // 遍历并打印该家庭下的所有设备
+            System.out.println("家庭 " + householdId + " 下的设备列表：");
+            for (Device device : devices) {
+                System.out.println(device);
+            }
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
@@ -253,11 +287,19 @@ public class HomeSphereSystem {
      * @param householdId 家庭ID，用于查找对应的家庭对象
      */
     public void listAutoScenesByHousehold(int householdId){
-        // 查找指定ID的家庭对象
-        Household household = findHouseholdById(householdId);
-        // 遍历并打印该家庭的所有自动场景
-        for(AutomationScene autoScene : household.getAutoScenes()){
-            System.out.println(autoScene);
+        try{
+            // 查找指定ID的家庭对象
+            Household household = findHouseholdById(householdId);
+            if(household == null){
+                throw new CannotFindException("家庭不存在！");
+            }
+            // 遍历并打印该家庭的所有自动场景
+            for(AutomationScene autoScene : household.getAutoScenes()){
+                System.out.println(autoScene);
+            }
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
@@ -268,46 +310,48 @@ public class HomeSphereSystem {
      * @param endTime 结束时间
      */
     public void displayEnergyReportings(int householdId, Date startTime, Date endTime) {
-        // 参数验证
-        if (startTime == null || endTime == null) {
-            System.out.println("开始时间和结束时间不能为空！");
-            return;
-        }
+        try{
+            // 参数验证
+            if (startTime == null || endTime == null) {
+                throw new IllegalArgumentException("开始和结束时间不能为空！");
+            }
 
-        if (startTime.after(endTime)) {
-            System.out.println("开始时间不能晚于结束时间！");
-            return;
-        }
+            if (startTime.after(endTime)) {
+                throw new IllegalArgumentException("开始时间不能早于结束时间！");
+            }
 
-        // 根据家庭ID查找家庭对象
-        Household household = findHouseholdById(householdId);
-        if (household == null) {
-            System.out.println("未找到ID为 " + householdId + " 的家庭！");
-            return;
-        }
+            // 根据家庭ID查找家庭对象
+            Household household = findHouseholdById(householdId);
+            if (household == null) {
+                throw new CannotFindException("家庭不存在！");
+            }
 
-        System.out.println("=== 家庭 " + householdId + " 能耗报告 ===");
-        System.out.println("时间段: " + startTime + " 至 " + endTime);
-        System.out.println("----------------------------------------");
+            System.out.println("=== 家庭 " + householdId + " 能耗报告 ===");
+            System.out.println("时间段: " + startTime + " 至 " + endTime);
+            System.out.println("----------------------------------------");
 
-        double totalEnergy = 0;
-        boolean hasEnergyDevices = false;
+            double totalEnergy = 0;
+            boolean hasEnergyDevices = false;
 
-        // 遍历家庭中的所有设备，统计能耗信息
-        for (Device device : household.listAllDevices()) {
-            if (device instanceof EnergyReporting) {
-                double energy = ((EnergyReporting) device).getReport(startTime, endTime);
-                System.out.println(device.getName() + ": " + energy + " kWh");
-                totalEnergy += energy;
-                hasEnergyDevices = true;
+            // 遍历家庭中的所有设备，统计能耗信息
+            for (Device device : household.listAllDevices()) {
+                if (device instanceof EnergyReporting) {
+                    double energy = ((EnergyReporting) device).getReport(startTime, endTime);
+                    System.out.println(device.getName() + ": " + energy + " kWh");
+                    totalEnergy += energy;
+                    hasEnergyDevices = true;
+                }
+            }
+
+            if (!hasEnergyDevices) {
+                System.out.println("该家庭没有可统计能耗的设备。");
+            } else {
+                System.out.println("----------------------------------------");
+                System.out.println("总耗能: " + totalEnergy + " kWh");
             }
         }
-
-        if (!hasEnergyDevices) {
-            System.out.println("该家庭没有可统计能耗的设备。");
-        } else {
-            System.out.println("----------------------------------------");
-            System.out.println("总耗能: " + totalEnergy + " kWh");
+        catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
@@ -317,44 +361,23 @@ public class HomeSphereSystem {
      * @param sceneId 自动场景ID，用于查找对应的自动场景对象
      */
     public void manualTrigSceneById(int householdId , int sceneId){
-        // 根据家庭ID查找家庭对象
-        Household household = findHouseholdById(householdId);
-        // 在家庭对象中查找指定的自动场景
-        AutomationScene autoScene = household.findAutoSceneById(sceneId);
-        // 手动触发该自动场景
-        autoScene.manualTrig();
-    }
-
-    /**
-     * 检查系统是否已初始化（至少有管理员用户）
-     * @return 如果系统已正确初始化返回true，否则返回false
-     */
-    public boolean isSystemInitialized() {
-        return users != null && !users.isEmpty() && users.containsKey(0);
-    }
-
-    /**
-     * 获取用户总数（不包括管理员）
-     * @return 普通用户数量
-     */
-    public int getRegularUserCount() {
-        return users.size() - 1; // 减去管理员
-    }
-
-    /**
-     * 获取家庭总数
-     * @return 家庭数量
-     */
-    public int getHouseholdCount() {
-        return households.size();
-    }
-
-    /**
-     * 检查用户是否已登录
-     * @return 如果已登录返回true，否则返回false
-     */
-    public boolean isLoggedIn() {
-        return currentUser != null;
+        try{
+            // 根据家庭ID查找家庭对象
+            Household household = findHouseholdById(householdId);
+            if (household == null) {
+                throw new CannotFindException("家庭不存在！");
+            }
+            // 在家庭对象中查找指定的自动场景
+            AutomationScene autoScene = household.findAutoSceneById(sceneId);
+            if (autoScene == null) {
+                throw new CannotFindException("自动场景不存在！");
+            }
+            // 手动触发该自动场景
+            autoScene.manualTrig();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -363,6 +386,6 @@ public class HomeSphereSystem {
      */
     @Override
     public String toString(){
-        return "HomeSphereSystem{users=" + users + ", households=" + households + "}";
+        return "HomeSphereSystem{users='" + users + ", households='" + households + "}";
     }
 }

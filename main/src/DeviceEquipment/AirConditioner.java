@@ -50,14 +50,20 @@ public class AirConditioner extends Device implements EnergyReporting {
      */
     @Override
     public double getReport(Date startTime, Date endTime) {
-        // 检查时间参数有效性
-        if (startTime == null || endTime == null || startTime.after(endTime)) {
+        try {
+            // 检查时间参数有效性
+            if (startTime == null || endTime == null || startTime.after(endTime)) {
+                throw new IllegalArgumentException("时间范围错误");
+            }
+
+            // 计算设备运行期间的能耗报告
+            // 通过功率乘以运行时间（秒）来计算能耗值
+            return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println("时间参数错误：" + e.getMessage());
             return 0;
         }
-
-        // 计算设备运行期间的能耗报告
-        // 通过功率乘以运行时间（秒）来计算能耗值
-        return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
     }
 
     /**

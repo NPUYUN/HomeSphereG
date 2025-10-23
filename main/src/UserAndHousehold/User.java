@@ -1,5 +1,7 @@
 package UserAndHousehold;
 
+import NormalException.RepeatedException;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,24 +37,29 @@ public class User {
      * @param phoneNumber 手机号码
      */
     public User(int userId, String loginName, String loginPassword, String userName, String phoneNumber) {
-        if (userId < 0) {
-            throw new IllegalArgumentException("用户ID不能为负数");
-        }
-        if (loginName == null || loginName.trim().isEmpty()) {
-            throw new IllegalArgumentException("登录名不能为空");
-        }
-        if (loginPassword == null || loginPassword.trim().isEmpty()) {
-            throw new IllegalArgumentException("登录密码不能为空");
-        }
-        if (userName == null || userName.trim().isEmpty()) {
-            throw new IllegalArgumentException("用户名不能为空");
-        }
+        try{
+            if (userId < 0) {
+                throw new IllegalArgumentException("用户ID不能为负数");
+            }
+            if (loginName == null || loginName.trim().isEmpty()) {
+                throw new IllegalArgumentException("登录名不能为空");
+            }
+            if (loginPassword == null || loginPassword.trim().isEmpty()) {
+                throw new IllegalArgumentException("登录密码不能为空");
+            }
+            if (userName == null || userName.trim().isEmpty()) {
+                throw new IllegalArgumentException("用户名不能为空");
+            }
 
-        this.userId = userId;
-        this.loginName = loginName;
-        this.loginPassword = loginPassword;
-        this.userName = userName;
-        this.phoneNumber = phoneNumber != null ? phoneNumber : "";
+            this.userId = userId;
+            this.loginName = loginName;
+            this.loginPassword = loginPassword;
+            this.userName = userName;
+            this.phoneNumber = phoneNumber != null ? phoneNumber : "";
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 
@@ -101,18 +108,21 @@ public class User {
      * @param membership 要添加的成员资格对象
      */
     public void addMembership(Membership membership) {
-        if (membership == null) {
-            System.out.println("不能添加空成员资格");
-            return;
-        }
-        // 如果已存在该成员资格，则不添加
-        if (memberships.containsKey(membership.getUser().getUserId())) {
-            System.out.println("该成员资格已存在");
-            return;
-        }
+        try{
+            if (membership == null) {
+                throw new IllegalArgumentException("成员资格对象不能为空");
+            }
+            // 如果已存在该成员资格，则不添加
+            if (memberships.containsKey(membership.getUser().getUserId())) {
+                throw new RepeatedException("该用户已加入组织");
+            }
 
-        // 将成员资格添加到映射中，以成员资格ID为键
-        memberships.put(membership.getUser().getUserId(), membership);
+            // 将成员资格添加到映射中，以成员资格ID为键
+            memberships.put(membership.getUser().getUserId(), membership);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -120,13 +130,17 @@ public class User {
      * @param membership 要移除的成员资格对象
      */
     public void removeMembership(Membership membership) {
-        if(membership == null){
-            System.out.println("不能移除空成员资格");
-            return;
-        }
+        try{
+            if(membership == null){
+                throw new IllegalArgumentException("成员资格对象不能为空");
+            }
 
-        // 从成员资格映射中移除指定的成员资格
-        memberships.remove(membership.getUser().getUserId());
+            // 从成员资格映射中移除指定的成员资格
+            memberships.remove(membership.getUser().getUserId());
+        }
+        catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**
@@ -135,7 +149,7 @@ public class User {
      */
     @Override
     public String toString() {
-        return "User{userId=" + userId + ", loginName=" + loginName + ", loginPassword=" + loginPassword + ", userName=" + userName + ", phoneNumber=" + phoneNumber + "}";
+        return "User{userId='" + userId + ", loginName='" + loginName + ", loginPassword='" + loginPassword + ", userName='" + userName + ", phoneNumber='" + phoneNumber + "}";
     }
 
     /**
