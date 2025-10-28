@@ -1,9 +1,10 @@
 package AutomatedWorkflow;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import DeviceEquipment.AirConditioner;
+import DeviceEquipment.Device;
 
-import DeviceEquipment.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 设备状态触发器类

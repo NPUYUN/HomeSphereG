@@ -105,4 +105,21 @@ public class Membership {
         return false;
     }
 
+    /**
+     * 重写toString方法，返回用户信息的字符串表示
+     * 该方法将用户的基本信息格式化为易于阅读的字符串格式
+     * 包含用户ID、登录名、姓名、联系电话和角色信息
+     *
+     * @return 格式化的用户信息字符串，包含用户的基本信息，各信息项之间用换行符分隔
+     */
+    @Override
+    public String toString() {
+        return "ID：" + user.getUserId() + '\n' +
+                "用户名：" + user.getLoginName() + '\n' +
+                "姓名：" + user.getUserName() + '\n' +
+                "联系电话：" + user.getPhoneNumber() + '\n' +
+                "角色：" + role;
+    }
+
+
 }

@@ -1,6 +1,6 @@
 package DeviceEquipment;
 
-import java.util.Date;
+import com.alibaba.fastjson2.JSON;
 
 /**
  *  BathroomScale 类，继承自 Device 类
@@ -69,4 +69,39 @@ public class BathroomScale extends Device {
             System.out.println(e.getMessage());
         }
     }
+
+    /**
+     * 将当前对象格式化为JSON字符串
+     *
+     * @return 返回当前对象的JSON格式字符串表示
+     */
+    @Override
+    public String formatToJsonString() {
+        // 使用JSON工具类将当前对象序列化为JSON字符串
+        return JSON.toJSONString(this);
+    }
+
+    /**
+     * 从JSON字符串解析设备信息
+     *
+     * @param json 包含设备信息的JSON字符串
+     * @return 解析后的设备对象，具体为BathroomScale类型
+     */
+    @Override
+    public Device parseFromJsonString(String json) {
+        // 使用JSON解析器将字符串转换为BathroomScale对象
+        return JSON.parseObject(json, BathroomScale.class);
+    }
+
+    /**
+     * 返回当前对象的字符串表示形式
+     *
+     * @return 包含类名和父类toString()结果的字符串
+     */
+    @Override
+    public String toString() {
+        // 构造包含类名和父类信息的字符串表示
+        return "BathroomScale{" + super.toString();
+    }
+
 }

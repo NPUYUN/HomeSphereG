@@ -1,9 +1,11 @@
 package UserAndHousehold;
 
-import AutomatedWorkflow.*;
+import AutomatedWorkflow.AutomationScene;
+import Common.HomeSphereSystem;
 import DeviceEquipment.Device;
 import NormalException.CannotDoException;
 import NormalException.CannotFindException;
+import NormalException.NotAdminException;
 import NormalException.RepeatedException;
 
 import java.util.*;
@@ -77,6 +79,30 @@ public class Household {
         }
     }
 
+    /**
+     * 检查指定用户是否为管理员用户
+     * @param userId 用户ID，用于标识需要检查的用户
+     * @throws NotAdminException 当用户存在但不是管理员时抛出此异常
+     * @throws CannotFindException 当用户不存在时抛出此异常
+     */
+    public void isAdminUser(int userId) throws NotAdminException, CannotFindException {
+        // 默认超管id为0，直接返回表示具有管理员权限
+        if(userId == 0) return;
+
+        // 遍历所有成员关系，查找匹配的用户
+        for(Membership membership : memberships.values()){
+            if(membership.getUser().getUserId() == userId){
+                // 检查用户角色是否为管理员角色
+                if(membership.getRole().equals(HomeSphereSystem.MANAGE_USER_ROLE)){
+                    return;
+                }
+                else{
+                    throw new NotAdminException("非管理员用户");
+                }
+            }
+        }
+        throw new CannotFindException("用户不存在");
+    }
 
     /**
      * 从成员资格映射中移除指定用户
@@ -164,7 +190,6 @@ public class Household {
 
     }
 
-
     /**
      * 获取房间列表
      * @return 房间列表
@@ -172,6 +197,15 @@ public class Household {
     public List<Room> getRooms(){
         // 将Map中的值转换为List返回
         return new ArrayList<>(rooms.values());
+    }
+
+    /**
+     * 根据房间ID查找房间
+     * @param roomId 房间的ID
+     * @return 找到的房间对象，如果没有找到，则返回null
+     */
+    public Room findRoomById(int roomId){
+        return rooms.get(roomId);
     }
 
     /**
@@ -201,7 +235,7 @@ public class Household {
         }
     }
 
-        /**
+    /**
      * 根据自动场景ID移除指定的自动场景
      * @param autoSceneId 要移除的自动场景的ID
      */
@@ -224,7 +258,6 @@ public class Household {
         }
 
     }
-
 
     /**
      * 获取自动化场景列表
@@ -270,6 +303,23 @@ public class Household {
     }
 
     /**
+     * 根据设备ID查找设备
+     * @param deviceId 设备ID
+     * @return 找到的设备对象，如果未找到则返回null
+     */
+    public Device findDeviceById(int deviceId){
+        // 遍历所有房间查找指定ID的设备
+        for(Room room : rooms.values()){
+            for(Device device : room.getDevices()){
+                if(device.getDeviceId() == deviceId){
+                    return device;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 获取家庭ID
      * @return 家庭ID
      */
@@ -291,7 +341,7 @@ public class Household {
      */
     @Override
     public String toString(){
-        return "Household{HouseholdId='" + householdId + ", Address='" + address + "}";
+        return "Household{householdId='" + householdId + ", address='" + address + "}";
     }
 
     /**

@@ -1,18 +1,26 @@
 # HomeSphereG 智能家居生态系统 v1.0
 HomeSphereG 是一个智能家居生态系统，旨在无缝集成和管理来自不同制造商的各类智能设备，为用户提供场景自动化、能源管理和远程控制等功能。
 
-### 主要功能模块
+## 系统特色
+- **多设备集成**：统一管理来自不同品牌的智能设备
+- **场景自动化**：支持时间触发和设备状态触发的自动化场景
+- **能耗监控**：实时监控设备能耗并生成统计报告
+- **用户友好界面**：简洁直观的操作界面，便于用户快速上手
+- **安全可靠**：完善的异常处理机制，确保系统稳定运行
+
+## 主要功能模块
 - **用户与家庭管理**：支持用户注册登录、家庭创建、房间管理等功能
 - **设备集成与管理**：支持多种智能设备的统一管理和控制
 - **节能减排管理**：设备能耗监控和统计报告
 - **自动化与智能场景**：自定义场景和自动化触发规则
+- **异常处理**：完善的异常处理机制，确保系统稳定运行
 
 ## 系统要求
 
 ### 开发环境
-- **操作系统**：Windows 7/10/11
+- **操作系统**：Windows 7/10/11 或其他支持Java的操作系统
 - **Java版本**：JDK 17 或更高版本
-- **开发工具**：Eclipse/IDEA/VS Code 等 IDE
+- **开发工具**：Eclipse/IntelliJ IDEA/VS Code 等IDE
 
 ### 运行环境
 - Java Runtime Environment (JRE) 8 或更高版本
@@ -24,28 +32,27 @@ HomeSphereG 是一个智能家居生态系统，旨在无缝集成和管理来�
 ```
 HomeSphereG/
 ├── main/
-│   ├── /src/
-│   │   ├── HomeSphereSystem/     # 系统核心类
-│   │   │── HomeSphereSystemTest/ # 测试类          
-│   │   ├── UserAndHousehold/     # 用户与家庭管理相关类
-│   │   ├── DeviceEquipment/      # 设备管理相关类  
-│   │   ├── EmissionReduction/    # 能耗管理相关类
-│   │   └── AutomatedScene/       # 自动化场景相关类        
-├── lib/                          # 依赖库
-├── image/                        # 图片资源
-└── README.md
+│   └── src/
+│       ├── AutomatedWorkflow/   # 自动化场景相关类
+│       ├── Common/              # 系统核心与操作类
+│       ├── DeviceEquipment/     # 设备管理相关类
+│       ├── EmissionReduction/   # 能耗管理相关类
+│       ├── NormalException/     # 异常处理类
+│       └── UserAndHousehold/    # 用户与家庭管理相关类
+├── lib/                         # 依赖库
+├── image/                       # 图片资源
+└── README.md                    # 项目说明文档
 ```
 
-![UML 类图](./image/uml.jpg)
-
 ## 核心功能说明
-1. 用户与家庭管理 
+
+### 1. 用户与家庭管理 
 - `User` 类：封装用户属性（ID、登录名、密码、姓名、手机号），提供 **login()** / **logout()** 方法，重写 **equals()**（按 ID 比较）和 **toString()**（返回基本属性）。
 - `Household` 类：管理家庭属性（ID、地址、管理员），提供 **addUser()** / **removeUser()**（成员管理）、 **addRoom()** / **removeRoom()**（房间管理）、 **listAllDevices()**（查询所有设备）方法。
 - `Room` 类：管理房间属性（ID、名称、面积），提供 **addDevice()** / **removeDevice()**（设备分配）、 **searchRoomDevice()**（按房间查设备）方法。
-- `Room` 类：管理房间属性（ID、名称、面积），提供 **addDevice()** / **removeDevice()**（设备分配）、 **searchRoomDevice()**（按房间查设备）方法。
+- `Membership` 类：管理用户在家庭中的成员关系和权限。
 
-2. 设备集成与管理
+### 2. 设备集成与管理
 - `Device` 抽象类：定义设备通用属性（ID、名称、在线状态、电源状态、制造商），提供 **powerOn()** / **powerOff()**（电源控制）方法。
 - 具体设备类：
   - `LightBulb`：实现 **setBrightness()**（调亮度）、 **setColorTemp()**（调色温）。
@@ -54,81 +61,156 @@ HomeSphereG/
   - `BathroomScale`：实现 **setBodyMass()**（体重）、 **setBatteryLevel()**（电量）。
 - `Manufacturer` 类：封装制造商属性，提供 **toString()**（返回基本属性）。
 
-3. 节能减排管理
+### 3. 节能减排管理
 - `RunningLog` 类：记录设备运行日志（时间、事件、类型：0=info/1=warning/2=error、备注），提供 **getEvent()** 等查询方法。
 - `EnergyReporting` 接口：定义 **getPower()**（获取功率）、 **getReport()**（生成能耗报告），仅 `LightBulb` 和 `AirConditioner` 实现。
 
-4. 自动化与智能场景
+### 4. 自动化与智能场景
 - `AutomationScene` 类：管理场景属性（ID、名称、描述），提供 **addAction()**（添加设备动作）、 **addTrigger()**（添加触发器）、 **manualTrig()**（手动触发场景）方法。
-- `DeviceAction` 类：封装设备动作（命令、参数、关联设备），提供 **execute()**（执行动作，如 “空调设为 20℃”）方法。
+- `DeviceAction` 类：封装设备动作（命令、参数、关联设备），提供 **execute()**（执行动作，如 "空调设为 20℃"）方法。
 - `Trigger` 接口及实现：
   - `TimeTrigger`：按周期（如周一 / 三 / 六）和时间触发，提供 **setExecuteDate()** / **setExecuteTime()** 方法。
-  - `DeviceTrigger`：按设备状态触发（如空调达 20℃），提供 **setTriggeringCondition()** 方法。
+  - `DeviceStatusTrigger`：按设备状态触发（如空调达 20℃），提供触发条件设置方法。
 
-5. 系统入口类（`HomeSphereSystem`）
-- 初始化users（用户列表）、households（家庭列表），创建默认管理员：User(0, "administrator", "111111", "超级管理员", "13512345678")。
-- 提供核心方法： **login()**（用户登录）、 **displayEnergyReportings()**（展示能耗报告）、 **manualTrigSceneById()**（按 ID 触发场景）、 **logoff()**（用户退出）。
+### 5. 系统入口与控制
+- `HomeSphereSystem` 类：系统核心控制类，提供系统初始化、用户管理、设备管理等核心功能。
+  - 初始化users（用户列表）、households（家庭列表），创建默认管理员：User(0, "administrator", "111111", "超级管理员", "13512345678")。
+  - 提供核心方法： **login()**（用户登录）、 **displayEnergyReportings()**（展示能耗报告）、 **manualTrigSceneById()**（按 ID 触发场景）、 **logoff()**（用户退出）。
+- `Command` 接口：定义命令执行方法，实现命令模式。
+- `CommandUI` 类：提供用户界面交互功能。
 
-6. 系统测试用例（`HomeSphereSystemTest`）
-- 测试用例：HomeSphereSystemTest.java，包含 17 个测试函数，验证系统核心功能（用户注册、设备管理、能耗报告、场景触发等）。
-
+### 6. 异常处理
+- `CannotDoException`：当用户无法执行特定操作时抛出。
+- `CannotFindException`：当无法找到特定对象（如用户、设备）时抛出。
+- `InvalidUserException`：当用户无效（如登录失败）时抛出。
+- `NotAdminException`：当非管理员用户尝试执行管理员操作时抛出。
+- `RepeatedException`：当尝试重复添加已存在对象时抛出。
 
 ## 编译与运行步骤
-1. IDE 编译运行（以 IDEA 为例）
-- 打开 IDEA，导入项目：选择HomeSphereG根目录，导入为 “Java 项目”。
-- 配置 JDK：进入 `File > Project Structure > SDKs`，选择 JDK 17。
-- 添加 Junit 依赖：右键项目 `> Open Module Settings > Libraries > +`，导入 `lib/junit.jar`。
-- 编译代码：点击顶部 `Build Project`，确保无语法错误。
-- 运行系统：找到 `HomeSphereSystem.java`，右键Run，初始化管理员并执行核心功能。
 
-2. 命令行编译运行
-- 进入项目根目录，执行编译命令（指定类路径）：
+### 1. IDE 编译运行（以 IntelliJ IDEA 为例）
+1. 打开 IDEA，导入项目：选择HomeSphereG根目录，导入为 "Java 项目"。
+2. 配置 JDK：进入 `File > Project Structure > SDKs`，选择 JDK 17。
+3. 添加依赖：如有必要，右键项目 `> Open Module Settings > Libraries > +`，导入所需依赖。
+4. 编译代码：点击顶部 `Build > Build Project`，确保无语法错误。
+5. 运行系统：找到 `Common.HomeSphereSystem.java`，右键Run，初始化管理员并执行核心功能。
+
+### 2. 命令行编译运行
+1. 进入项目根目录
+2. 创建bin目录（如果不存在）：`mkdir bin`
+3. 编译代码（指定类路径）：
 ```bash
-javac -cp lib/junit.jar -d bin src/com/homesphere/**/*.java
+javac -d bin main/src/**/*.java
 ```
 
-- 运行系统（指定类路径和主类）：
+4. 运行系统（指定类路径和主类）：
 ```bash
-java -cp bin com.homesphere.system.HomeSphereSystem
+java -cp bin Common.HomeSphereSystem
 ```
-## 单元测试方法
-- 测试准备：确保test/HomeSphereSystemTest.java已导入，且junit.jar依赖配置完成。
-- 运行测试用例：
-IDE 中：右键HomeSphereSystemTest.java > Run Tests，自动执行 17 个测试函数。
-   - 关键测试用例对应功能：
-  ```
-      testHouseholdCreation：验证家庭对象创建及属性查询。
-      testHouseholdRoomManagement：验证房间管理功能（添加、删除、查询）。
-      testHouseholdUserManagement：验证用户管理功能（添加、删除、查询）。
-      testManufacturer：验证制造商属性（创建、查询）。
-      testHouseholdListAllDevices：验证查询所有设备功能。
-      testRoomDeviceManagement：验证房间设备管理功能（添加、删除、查询）。
-      testDevicePowerManagement：验证设备电源开关功能。
-      testAirConditionerTemperature：验证空调温度设置功能。
-      testLightBulbSettings：验证灯泡亮度和调色温功能。
-      testSmartLock：验证智能锁状态和电量功能。
-      testBathroomScale：验证 bathroom scale 体重和电量功能。
-      testRunningLog：验证运行日志记录功能。
-      testEnergyReporting：验证能耗报告生成功能。
-      testDeviceAction：验证设备动作执行功能。
-      testAutomationScene：验证自动化场景管理功能。
-      testHouseholdAutomationSceneManagement：验证家庭自动化场景管理功能。
-      testHomeSphereSystem：验证系统核心功能（用户注册、设备管理、能耗报告、场景触发等）。
-  ```
-  - 自定义测试：在HomeSphereSystemTest.java中新增方法（如testBathroomScaleBodyMass()），按 Junit 规范用@Test注解，验证自定义功能
 
-## 快速上手示例
-- 创建家庭：登录后调用Household类的构造方法创建家庭
-- 添加设备：通过Room.addDevice()将灯泡添加到客厅
-- 设定场景：创建 “回家模式” 场景，添加触发器（TimeTrigger 18:00）和动作（灯泡开启、空调设为 25℃）
+## 操作菜单说明
 
-## 引用
-如果该项目对您有帮助，请引用：
-``` html
-@software{HomeSphereG,
-  author = {NPUYUN},
-  title = {HomeSphereG},
-  year = {2025},
-  url = {https://github.com/NPUYUN/HomeSphereG}
-}
+系统提供了层次化的命令行操作界面，通过数字选择菜单进行操作。以下是系统的主要菜单结构：
+
+### 主菜单
 ```
+=== 智能家居生态系统HomeSphereGv2.0 ===
+1. 用户登录
+2. 用户注册
+3. 退出系统
+```
+
+### 家庭管理菜单（登录后）
+```
+=== 家庭管理菜单 ===
+1. 管理家庭及成员
+2. 管理房间设备
+3. 智能场景管理
+4. 日志能耗管理
+5. 退出登录
+```
+
+### 家庭及成员管理菜单
+```
+=== 家庭及成员管理 ===
+1. 新建家庭
+2. 列出所有家庭
+3. 添加成员至家庭
+4. 列出家庭所有成员
+5. 返回上级
+```
+
+### 设备管理菜单
+```
+=== 设备管理 ===
+1. 添加设备
+2. 移除设备
+3. 列出所有设备
+4. 返回上级
+```
+
+### 智能场景管理菜单
+```
+=== 场景管理 ===
+1. 创建新场景
+2. 触发场景
+3. 列出所有场景
+4. 返回上级
+```
+
+### 日志能耗管理菜单
+```
+=== 日志能耗管理 ===
+1. 查看设备运行日志
+2. 查看能耗报告
+3. 返回上级
+```
+
+### 使用流程示例
+
+#### 1. 用户登录
+1. 在主菜单选择1进入登录界面
+2. 输入用户名和密码进行登录
+3. 登录成功后自动进入家庭管理菜单
+
+#### 2. 创建家庭
+1. 在家庭管理菜单选择1进入家庭及成员管理
+2. 选择1新建家庭
+3. 按照提示输入家庭信息
+
+#### 3. 管理设备
+1. 在家庭管理菜单选择2进入设备管理
+2. 选择1添加设备，或选择2移除设备
+3. 选择3查看当前所有设备列表
+
+#### 4. 智能场景操作
+1. 在家庭管理菜单选择3进入智能场景管理
+2. 选择1创建新的自动化场景
+3. 选择2手动触发已创建的场景
+4. 选择3查看所有场景列表
+
+#### 5. 查看能耗数据
+1. 在家庭管理菜单选择4进入日志能耗管理
+2. 选择1查看设备运行日志
+3. 选择2生成并查看能耗报告
+
+## 用户界面预览
+
+系统提供了直观的用户界面，包括：
+- 用户登录注册界面
+- 主菜单界面
+- 家庭管理菜单
+- 设备控制界面
+
+## 系统架构
+
+HomeSphereG采用模块化设计，各模块之间通过清晰的接口进行交互，保持低耦合高内聚的设计原则。系统基于面向对象编程思想，广泛运用了抽象类、接口、继承等特性，实现了良好的扩展性和可维护性。
+
+## 更新日志
+
+### v2.0 (初始版本)
+- 实现基础的用户与家庭管理功能
+- 支持多种智能设备的管理与控制
+- 实现节能减排监控功能
+- 提供自动化场景设置功能
+- 完善的异常处理机制

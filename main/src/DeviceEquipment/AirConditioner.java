@@ -1,6 +1,8 @@
 package DeviceEquipment;
 
 import EmissionReduction.EnergyReporting;
+import EmissionReduction.RunningLog;
+import com.alibaba.fastjson2.JSON;
 
 import java.util.Date;
 
@@ -11,7 +13,9 @@ import java.util.Date;
 public class AirConditioner extends Device implements EnergyReporting {
     private double currTemp;
     private double targetTemp;
-    private static final double BASE_POWER = 100.0; // 基础功率
+    private static final double BASE_POWER = 100.0;
+
+    // 基础功率
     private static final double POWER_PER_DEGREE = 20.0; // 每度温差的功率
 
     /**
@@ -32,11 +36,6 @@ public class AirConditioner extends Device implements EnergyReporting {
      */
     @Override
     public double getPower() {
-        // 根据设备电源状态确定功率值
-        if (!isPowerStatus()) {
-            return 0;
-        }
-
         // 根据温差计算实际功率
         double tempDiff = Math.abs(currTemp - targetTemp);
         return BASE_POWER + (tempDiff * POWER_PER_DEGREE);
@@ -56,11 +55,36 @@ public class AirConditioner extends Device implements EnergyReporting {
                 throw new IllegalArgumentException("时间范围错误");
             }
 
-            // 计算设备运行期间的能耗报告
-            // 通过功率乘以运行时间（秒）来计算能耗值
-            return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
-        }
-        catch (IllegalArgumentException e) {
+            double totalEnergy = 0.0;
+            Date lastPowerOnTime = null;
+
+            // 遍历运行日志，计算能耗
+            for (RunningLog log : getRunningLogs()) {
+                Date logTime = log.getDateTime();
+
+                // 只处理时间范围内的日志
+                if (logTime.before(startTime) || logTime.after(endTime)) {
+                    continue;
+                }
+
+                if ("powerOn".equals(log.getEvent())) {
+                    lastPowerOnTime = logTime;
+                } else if ("powerOff".equals(log.getEvent()) && lastPowerOnTime != null) {
+                    // 计算这一段运行时间的能耗
+                    long durationMillis = logTime.getTime() - lastPowerOnTime.getTime();
+                    totalEnergy += getPower() * durationMillis / 1000.0 / 3600.0;
+                    lastPowerOnTime = null; // 重置
+                }
+            }
+
+            // 处理设备在结束时间仍处于开启状态的情况
+            if (lastPowerOnTime != null && isPowerStatus()) {
+                long durationMillis = endTime.getTime() - lastPowerOnTime.getTime();
+                totalEnergy += getPower() * durationMillis / 1000.0 / 3600.0;
+            }
+
+            return totalEnergy;
+        } catch (IllegalArgumentException e) {
             System.out.println("时间参数错误：" + e.getMessage());
             return 0;
         }
@@ -97,4 +121,32 @@ public class AirConditioner extends Device implements EnergyReporting {
     public double getTargetTemp() {
         return targetTemp;
     }
+
+    /**
+     * 将当前对象格式化为JSON字符串
+     *
+     * @return 返回当前对象的JSON格式字符串表示
+     */
+    @Override
+    public String formatToJsonString() {
+        // 使用fastjson将当前对象序列化为JSON字符串
+        return JSON.toJSONString(this);
+    }
+
+
+    @Override
+    public Device parseFromJsonString(String json) {
+        return JSON.parseObject(json, AirConditioner.class);
+    }
+
+    /**
+     * 返回空调对象的字符串表示形式
+     *
+     * @return 包含空调信息的字符串，格式为"AirConditioner{[父类信息]}"
+     */
+    @Override
+    public String toString() {
+        return "AirConditioner{" + super.toString();
+    }
+
 }

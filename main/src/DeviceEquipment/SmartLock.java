@@ -1,5 +1,7 @@
 package DeviceEquipment;
 
+import com.alibaba.fastjson2.JSON;
+
 /**
  * SmartLock 类继承自 Device 类
  * 描述智能锁设备
@@ -57,4 +59,36 @@ public class SmartLock extends Device{
     public int getBatteryLevel() {
         return batteryLevel;
     }
+
+    /**
+     * 将当前对象格式化为JSON字符串
+     *
+     * @return 返回表示当前对象的JSON字符串
+     */
+    @Override
+    public String formatToJsonString() {
+        return JSON.toJSONString(this);
+    }
+
+    /**
+     * 从JSON字符串解析设备对象
+     *
+     * @param json 包含设备信息的JSON字符串
+     * @return 返回解析后的Device对象实例
+     */
+    @Override
+    public Device parseFromJsonString(String json) {
+        return JSON.parseObject(json, SmartLock.class);
+    }
+
+    /**
+     * 返回当前对象的字符串表示形式
+     *
+     * @return 返回SmartLock对象的字符串描述
+     */
+    @Override
+    public String toString() {
+        return "SmartLock{" + super.toString();
+    }
+
 }

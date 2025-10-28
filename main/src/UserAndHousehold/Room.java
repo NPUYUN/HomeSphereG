@@ -1,6 +1,6 @@
 package UserAndHousehold;
 
-import DeviceEquipment.*;
+import DeviceEquipment.Device;
 import NormalException.RepeatedException;
 
 import java.util.ArrayList;
@@ -51,7 +51,6 @@ public class Room {
         }
     }
 
-
     /**
      * 从房间中删除一个设备
      * @param deviceId 要删除的设备ID
@@ -70,7 +69,6 @@ public class Room {
         }
 
     }
-
 
     /**
      * 根据设备ID查找设备对象

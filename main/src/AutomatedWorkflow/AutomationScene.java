@@ -1,9 +1,10 @@
 package AutomatedWorkflow;
 
+import EmissionReduction.RunningLog;
+
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  *  场景类，用于描述自动化场景
@@ -75,15 +76,31 @@ public class AutomationScene {
         return triggers;
     }
 
-    /**
+        /**
      * 手动触发场景，执行所有设备动作
+     * 该方法会遍历场景中的所有设备动作并依次执行，同时记录执行日志
      */
     public void manualTrig(){
-        for (DeviceAction action : actions){
-            System.out.println(action.getCommand() + " " + action.getParameters());
+        System.out.println("Manually triggering scene：" + name);
+
+        // 遍历并执行所有设备动作
+        for(DeviceAction action : actions){
+            action.execute();
+            Date date = new Date();
+            RunningLog runningLog = null;
+
+            // 根据命令类型创建不同的运行日志
+            if(action.getCommand().equals("setTemperature")){
+                runningLog = new RunningLog(date, action.getCommand() + " " + action.getParameters(), RunningLog.Type.INFO, "设备动作执行成功");
+            }
+            else{
+                runningLog = new RunningLog(date, action.getCommand(), RunningLog.Type.INFO, "设备动作执行成功");
+            }
+            action.getDevice().addRunningLog(runningLog);
         }
-        System.out.println("手动触发场景完成！");
+        System.out.println("Scene with " + "ID " + getSceneId() + " trigged!");
     }
+
 
     /**
      * 获取场景ID
@@ -145,5 +162,19 @@ public class AutomationScene {
     public String getDescription() {
         return description;
     }
+
+    /**
+     * 返回场景对象的字符串表示形式
+     *
+     * @return 包含场景ID、名称和描述信息的格式化字符串
+     */
+    @Override
+    public String toString() {
+        // 将场景的基本信息格式化为易读的字符串形式
+        return "ID" + sceneId + "\n" +
+                "名称：" + name + "\n" +
+                "描述：" + description;
+    }
+
 
 }

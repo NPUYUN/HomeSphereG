@@ -1,6 +1,5 @@
 package DeviceEquipment;
 
-import NormalException.CannotDoException;
 import NormalException.CannotFindException;
 import NormalException.RepeatedException;
 
@@ -102,4 +101,19 @@ public class Manufacturer {
     public String getProtocols() {
         return protocols;
     }
+
+    /**
+     * 返回制造商对象的字符串表示形式
+     *
+     * @return 包含制造商ID、名称和协议信息的格式化字符串
+     */
+    @Override
+    public String toString() {
+        return "manufacturer{" +
+                "manufacturerId=" + manufacturerId +
+                ", name='" + name + '\'' +
+                ", protocols='" + protocols + '\'' +
+                '}';
+    }
+
 }

@@ -1,6 +1,8 @@
 package DeviceEquipment;
 
 import EmissionReduction.EnergyReporting;
+import EmissionReduction.RunningLog;
+import com.alibaba.fastjson2.JSON;
 
 import java.util.Date;
 
@@ -52,16 +54,43 @@ public class LightBulb extends Device implements EnergyReporting {
                 throw new IllegalArgumentException("时间参数无效");
             }
 
-            // 计算耗电量：功率 × 时间差(毫秒转秒)
+            // 计算设备运行期间的能耗报告
             // 通过功率乘以运行时间（秒）来计算能耗值
-            return getPower() * (endTime.getTime() - startTime.getTime()) / 1000;
+            Date start = startTime;
+            Date end = null;
+            double report = 0;
+            for(RunningLog log : getRunningLogs()){
+                if(log.getEvent().equals("powerOn"))
+                    start = log.getDateTime();
+                if(log.getEvent().equals("powerOff")){
+                    end = log.getDateTime();
+                }
+                // 计算每次开关机期间的耗电量
+                if( end!= null && end.after(start)){
+                    if(end.getTime() < endTime.getTime()){
+                        // 设备在查询结束时间前关机，计算完整运行时间的耗电量
+                        report += getPower() * (end.getTime() - start.getTime()) / 1000 / 3600.0;
+                    }
+                    else{
+                        // 设备运行超过查询结束时间，只计算到查询结束时间的耗电量
+                        report += getPower() * (endTime.getTime() - start.getTime()) / 1000 / 3600.0;
+                        break;
+                    }
+
+                }
+            }
+            // 处理最后一次开机但未关机的情况
+            if(start != startTime && end == null && start.before(endTime)){
+                report += getPower() * (endTime.getTime() - start.getTime()) / 1000 / 3600.0;
+            }
+
+            return report;
         }
         catch (IllegalArgumentException e) {
             System.out.println("时间参数无效");
             return 0;
         }
     }
-
 
     /**
      * 设置灯泡的亮度
@@ -110,4 +139,38 @@ public class LightBulb extends Device implements EnergyReporting {
     public int getColorTemp() {
         return colorTemp;
     }
+
+    /**
+     * 将当前对象格式化为JSON字符串
+     *
+     * @return 返回当前对象的JSON格式字符串表示
+     */
+    @Override
+    public String formatToJsonString() {
+        // 使用JSON工具类将当前对象序列化为JSON字符串
+        return JSON.toJSONString(this);
+    }
+
+    /**
+     * 从JSON字符串解析设备对象
+     *
+     * @param json 包含设备信息的JSON字符串
+     * @return 解析后的LightBulb设备对象
+     */
+    @Override
+    public Device parseFromJsonString(String json) {
+        return JSON.parseObject(json, LightBulb.class);
+    }
+
+    /**
+     * 重写toString方法，返回灯泡对象的字符串表示
+     *
+     * @return 包含类名和父类toString结果的字符串
+     */
+    @Override
+    public String toString() {
+        // 构造并返回包含父类信息的字符串表示
+        return "LightBulb{" + super.toString();
+    }
+
 }
