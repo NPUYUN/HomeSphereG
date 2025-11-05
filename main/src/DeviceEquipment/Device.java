@@ -10,12 +10,14 @@ import java.util.List;
  * 含有设备ID、名称、是否在线、是否运行、制造商等信息
  */
 public abstract class Device {
-    int deviceId;
-    String name;
-    boolean isOnline;
-    boolean powerStatus;
-    Manufacturer manufacturer;
-    List<RunningLog> runningLogs = new ArrayList<>();
+    protected int deviceId;
+    protected String name;
+    protected boolean isOnline;
+    protected boolean powerStatus;
+    protected Manufacturer manufacturer;
+    protected List<RunningLog> runningLogs = new ArrayList<>();
+    // 观察者列表，用于存储所有观察该设备的观察者
+    protected List<DeviceObserver> observers = new ArrayList<>();
 
 
     /**
@@ -24,7 +26,7 @@ public abstract class Device {
      * @param name 设备名称
      * @param manufacturer 设备制造商
      */
-    public Device(int deviceId, String name, Manufacturer manufacturer){
+    protected Device(int deviceId, String name, Manufacturer manufacturer){
         this.deviceId = deviceId;
         this.name = name;
         this.manufacturer = manufacturer;
@@ -37,7 +39,12 @@ public abstract class Device {
      * 该方法用于将设备设置为开启状态，并打印设备开启信息。
      */
     public void powerOn(){
+        boolean oldStatus = powerStatus;
         powerStatus = true; // 设置电源状态为开启
+        // 如果状态发生变化，通知所有观察者
+        if (!oldStatus) {
+            notifyObservers();
+        }
     }
 
     /**
@@ -45,7 +52,12 @@ public abstract class Device {
      * 将设备状态设置为关闭，并输出关闭信息
      */
     public void powerOff(){
+        boolean oldStatus = powerStatus;
         powerStatus = false; // 设置电源状态为关闭
+        // 如果状态发生变化，通知所有观察者
+        if (oldStatus) {
+            notifyObservers();
+        }
     }
 
     /**
@@ -80,14 +92,6 @@ public abstract class Device {
         return powerStatus;
     }
 
-    /**
-     * 获取设备制造商
-     * @return 设备制造商
-     */
-    public Manufacturer getManufacturer() {
-        return manufacturer;
-    }
-
         /**
      * 获取运行日志列表
      *
@@ -105,6 +109,33 @@ public abstract class Device {
      */
     public void addRunningLog(RunningLog runningLog) {
         runningLogs.add(runningLog);
+    }
+    
+    /**
+     * 添加设备观察者
+     * @param observer 要添加的观察者对象
+     */
+    public void addObserver(DeviceObserver observer) {
+        if (observer != null && !observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
+    
+    /**
+     * 移除设备观察者
+     * @param observer 要移除的观察者对象
+     */
+    public void removeObserver(DeviceObserver observer) {
+        observers.remove(observer);
+    }
+    
+    /**
+     * 通知所有观察者设备状态发生变化
+     */
+    protected void notifyObservers() {
+        for (DeviceObserver observer : observers) {
+            observer.update(this);
+        }
     }
 
     /**

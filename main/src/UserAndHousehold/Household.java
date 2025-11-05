@@ -351,7 +351,8 @@ public class Household {
      */
     @Override
     public boolean equals(Object obj){
-        if(obj instanceof Household household){
+        if(obj instanceof Household){
+            Household household = (Household) obj;
             return household.householdId == householdId;
         }
         return false;

@@ -2,8 +2,10 @@ package Common;
 
 import AutomatedWorkflow.AutomationScene;
 import AutomatedWorkflow.DeviceAction;
+import AutomatedWorkflow.DeviceCommand.DeviceCommand;
 import DeviceEquipment.*;
 import EmissionReduction.RunningLog;
+import EmissionReduction.RunningLogFormatter;
 import NormalException.CannotFindException;
 import NormalException.NotAdminException;
 import UserAndHousehold.Household;
@@ -11,6 +13,9 @@ import UserAndHousehold.Membership;
 import UserAndHousehold.Room;
 import UserAndHousehold.User;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
@@ -248,22 +253,22 @@ public class Command {
             // 根据设备类型创建设备对象并添加到房间中
             switch (type){
                 case 1:
-                    AirConditioner airConditioner = new AirConditioner(deviceId, name, DEFAULT_AIR_CONDITIONER_MANUFACTURER);
+                    AirConditioner airConditioner = (AirConditioner) DEFAULT_AIR_CONDITIONER_MANUFACTURER.createDevice(deviceId, name, "AirConditioner");
                     room.addDevice(airConditioner);
                     System.out.println("添加设备成功：" + airConditioner);
                     break;
                 case 2:
-                    LightBulb lightBulb = new LightBulb(deviceId, name, DEFAULT_LIGHT_BULB_MANUFACTURER);
+                    LightBulb lightBulb = (LightBulb) DEFAULT_LIGHT_BULB_MANUFACTURER.createDevice(deviceId, name, "LightBulb");
                     room.addDevice(lightBulb);
                     System.out.println("添加设备成功：" + lightBulb);
                     break;
                 case 3:
-                    SmartLock smartLock = new SmartLock(deviceId, name, DEFAULT_SMART_LOCK_MANUFACTURER);
+                    SmartLock smartLock = (SmartLock) DEFAULT_SMART_LOCK_MANUFACTURER.createDevice(deviceId, name, "SmartLock");
                     room.addDevice(smartLock);
                     System.out.println("添加设备成功：" + smartLock);
                     break;
                 case 4:
-                    BathroomScale bathroomScale = new BathroomScale(deviceId, name, DEFAULT_BATHROOM_SCALE_MANUFACTURER);
+                    BathroomScale bathroomScale = (BathroomScale) DEFAULT_BATHROOM_SCALE_MANUFACTURER.createDevice(deviceId, name, "BathroomScale");
                     room.addDevice(bathroomScale);
                     System.out.println("添加设备成功：" + bathroomScale);
                     break;
@@ -381,7 +386,7 @@ public class Command {
                     // 获取操作命令
                     System.out.print("请输入操作命令(例如powerOn/setTemperature)：");
                     String command = scanner.next();
-                    DeviceAction deviceAction = null;
+                    DeviceCommand deviceCommand = null;
 
                     // 处理设置温度的特殊命令
                     if(command.equals("setTemperature")){
@@ -397,17 +402,17 @@ public class Command {
                             System.out.println("温度值超出范围！");
                             continue;
                         }
-                        deviceAction = new DeviceAction(command, parameters, device);
+                        deviceCommand = DeviceAction.createCommand(command, device, parameters);
                     }
                     else {
-                        deviceAction = new DeviceAction(command, null, device);
+                        deviceCommand = DeviceAction.createCommand(command, device, null);
                     }
-                    autoScene.addAction(deviceAction);
+                    autoScene.addCommand(deviceCommand);
 
                     // 显示当前场景中的所有设备操作
                     System.out.println("当前场景中的设备操作：");
-                    for(DeviceAction deviceActions : autoScene.getActions()){
-                        System.out.println(deviceActions.getDevice().getName() + " - " + deviceActions.getCommand());
+                    for(DeviceCommand commands : autoScene.getCommands()){
+                        System.out.println(deviceCommand.getDevice().getName() + " - " + deviceCommand.getDescription());
                     }
                 }
                 else{
@@ -534,5 +539,25 @@ public class Command {
             System.out.println();
         }
     }
+
+    /**
+     * 将所有家庭数据保存为指定格式的文件
+     * @param formatter 日志格式化器
+     * @param extension 文件扩展名
+     */
+    public static void saveHouseholdsToFile(RunningLogFormatter formatter, String extension) {
+        for (Household household : Command.system.getHouseholds()) {
+            File file = new File("./data/"+ household.getHouseholdId() + "." + extension);
+            try (FileWriter writer = new FileWriter(file)) {
+                // 先确保文件存在
+                file.createNewFile();
+                writer.write(formatter.format(household));
+                System.out.println("保存 " + extension.toUpperCase() + " 文件成功");
+            } catch (IOException e) {
+                System.out.println("保存 " + extension.toUpperCase() + " 文件失败: " + e.getMessage());
+            }
+        }
+    }
+
 
 }

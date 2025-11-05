@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<household householdId="1" address="北京">
+  <rooms>
+    <room roomId="1" roomName="客厅">
+      <devices>
+        <device deviceId="1" deviceName="美的空调">
+          <runningLogs>
+            <runningLog dateTime="2025-11-03 23:57:58" event="setTemperature 25.0" type="INFO" note=""/>
+          </runningLogs>
+        </device>
+        <device deviceId="4" deviceName="LED灯">
+          <runningLogs/>
+        </device>
+        <device deviceId="7" deviceName="欧莱雅锁">
+          <runningLogs/>
+        </device>
+        <device deviceId="8" deviceName="Scale">
+          <runningLogs/>
+        </device>
+      </devices>
+    </room>
+    <room roomId="2" roomName="主卧">
+      <devices>
+        <device deviceId="2" deviceName="美的空调">
+          <runningLogs/>
+        </device>
+        <device deviceId="5" deviceName="LED灯">
+          <runningLogs/>
+        </device>
+      </devices>
+    </room>
+    <room roomId="3" roomName="次卧">
+      <devices>
+        <device deviceId="3" deviceName="美的空调">
+          <runningLogs/>
+        </device>
+        <device deviceId="6" deviceName="LED灯">
+          <runningLogs/>
+        </device>
+      </devices>
+    </room>
+  </rooms>
+</household>

@@ -48,7 +48,8 @@ public class DeviceStatusTrigger implements Trigger{
             // 提取匹配到的温度数值
             int targetTemp = Integer.parseInt(matcher.group(1));
             // 检查设备是否为空调类型，并获取其目标温度进行比较
-            if(device instanceof AirConditioner ac){
+            if(device instanceof AirConditioner){
+                AirConditioner ac = (AirConditioner) device;
                 // 比较空调目标温度与条件中指定的温度是否一致
                 if(ac.getTargetTemp() == targetTemp){
                     isActive = true;

@@ -130,7 +130,8 @@ public class Room {
      */
     @Override
     public boolean equals(Object obj){
-        if(obj instanceof Room room){
+        if(obj instanceof Room){
+            Room room = (Room) obj;
             return room.roomId == roomId;
         }
         return false;

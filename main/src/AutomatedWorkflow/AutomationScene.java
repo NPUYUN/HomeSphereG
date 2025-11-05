@@ -1,5 +1,8 @@
 package AutomatedWorkflow;
 
+import AutomatedWorkflow.DeviceCommand.DeviceCommand;
+import DeviceEquipment.Device;
+import DeviceEquipment.DeviceObserver;
 import EmissionReduction.RunningLog;
 
 import java.util.ArrayList;
@@ -9,12 +12,13 @@ import java.util.List;
 /**
  *  场景类，用于描述自动化场景
  */
-public class AutomationScene {
+public class AutomationScene implements DeviceObserver {
     private int sceneId;  // 修改字段名为更规范的 sceneId
     private String name;
     private String description;
     private List<Trigger> triggers = new ArrayList<>();
-    private List<DeviceAction> actions = new ArrayList<>();
+    private List<DeviceCommand> commands = new ArrayList<>();
+    private List<DeviceObserver> deviceTriggers = new ArrayList<>(); // 存储设备状态变化触发器
 
     /**
      *  构造函数，初始化场景ID、名称和描述
@@ -30,26 +34,26 @@ public class AutomationScene {
 
     /**
      * 向设备动作列表中添加一个新的设备动作
-     * @param action 要添加的设备动作对象
+     * @param command 要添加的设备动作对象
      */
-    public void addAction(DeviceAction action){
-        actions.add(action);
+    public void addCommand(DeviceCommand command){
+        commands.add(command);
     }
 
     /**
      * 从设备动作列表中删除一个设备动作
-     * @param action 要删除的设备动作对象
+     * @param command 要删除的设备动作对象
      */
-    public void removeAction(DeviceAction action){
-        actions.remove(action);
+    public void removeAction(DeviceCommand command){
+        commands.remove(command);
     }
 
     /**
      * 获取设备动作列表
      * @return 设备动作列表
      */
-    public List<DeviceAction> getActions(){
-        return actions;
+    public List<DeviceCommand> getCommands(){
+        return commands;
     }
 
     /**
@@ -84,19 +88,11 @@ public class AutomationScene {
         System.out.println("Manually triggering scene：" + name);
 
         // 遍历并执行所有设备动作
-        for(DeviceAction action : actions){
-            action.execute();
+        for(DeviceCommand command : commands){
+            command.execute();
             Date date = new Date();
-            RunningLog runningLog = null;
-
-            // 根据命令类型创建不同的运行日志
-            if(action.getCommand().equals("setTemperature")){
-                runningLog = new RunningLog(date, action.getCommand() + " " + action.getParameters(), RunningLog.Type.INFO, "设备动作执行成功");
-            }
-            else{
-                runningLog = new RunningLog(date, action.getCommand(), RunningLog.Type.INFO, "设备动作执行成功");
-            }
-            action.getDevice().addRunningLog(runningLog);
+            RunningLog runningLog = new RunningLog(date, command.getDescription(), RunningLog.Type.INFO, "");
+            command.getDevice().addRunningLog(runningLog);
         }
         System.out.println("Scene with " + "ID " + getSceneId() + " trigged!");
     }
@@ -120,6 +116,30 @@ public class AutomationScene {
 
 
     /**
+     * 添加基于设备状态变化的触发器
+     * @param device 要观察的设备
+     * @param triggerPowerState 触发的电源状态
+     */
+    public void addDeviceTrigger(Device device, boolean triggerPowerState) {
+        // 创建设备状态触发器
+        AutomationSceneTrigger trigger = new AutomationSceneTrigger(this, device.getDeviceId(), triggerPowerState);
+        deviceTriggers.add(trigger);
+        // 将触发器注册为设备的观察者
+        device.addObserver(trigger);
+    }
+    
+    /**
+     * 移除设备触发器
+     * @param device 要移除观察的设备
+     */
+    public void removeDeviceTriggers(Device device) {
+        for (DeviceObserver trigger : deviceTriggers) {
+            device.removeObserver(trigger);
+        }
+        deviceTriggers.clear();
+    }
+    
+    /**
      * 执行触发器检查和相应的设备动作
      *
      * 该方法遍历所有注册的触发器，检查是否有触发器被激活。
@@ -133,13 +153,15 @@ public class AutomationScene {
         // 遍历所有触发器，检查是否有触发器满足激活条件
         for(Trigger trigger : triggers){
             trigger.evaluate();
-            if(trigger instanceof TimeTrigger timeTrigger){
+            if(trigger instanceof TimeTrigger){
+                TimeTrigger timeTrigger = (TimeTrigger) trigger;
                 if(timeTrigger.isActive()) {
                     isTriggered = true;
                     break;
                 }
             }
-            else if(trigger instanceof DeviceStatusTrigger deviceStatusTrigger){
+            else if(trigger instanceof DeviceStatusTrigger){
+                DeviceStatusTrigger deviceStatusTrigger = (DeviceStatusTrigger) trigger;
                 if(deviceStatusTrigger.isActive()) {
                     isTriggered = true;
                     break;
@@ -149,11 +171,33 @@ public class AutomationScene {
 
         // 如果有触发器被激活，执行所有设备动作
         if(isTriggered){
-            for (DeviceAction action : actions){
-                System.out.println(action.getCommand() + " " + action.getParameters());
+            for (DeviceCommand command : commands){
+                command.execute();
+                System.out.println(command.getDescription());
+                // 记录执行日志
+                Date date = new Date();
+                RunningLog runningLog = new RunningLog(date, command.getDescription(), RunningLog.Type.INFO, "");
+                command.getDevice().addRunningLog(runningLog);
             }
         }
     }
+
+    /**
+     * 撤销最后执行的命令
+     * 该方法会检查命令列表是否为空，如果不为空则获取最后一个命令并执行撤销操作
+     */
+    public void undoLastCommand() {
+        // 检查命令列表是否为空
+        if (!commands.isEmpty()) {
+            // 获取最后一个命令
+            DeviceCommand lastCommand = commands.get(commands.size() - 1);
+            // 执行撤销操作
+            lastCommand.undo();
+            System.out.println("Last command undone");
+        }
+    }
+
+
 
     /**
      * 获取场景描述
@@ -174,6 +218,16 @@ public class AutomationScene {
         return "ID" + sceneId + "\n" +
                 "名称：" + name + "\n" +
                 "描述：" + description;
+    }
+    
+    /**
+     * 实现DeviceObserver接口的update方法
+     * 当观察的设备状态变化时，该方法会被调用
+     */
+    @Override
+    public void update(Device device) {
+        // 设备状态变化时自动执行场景
+        execute();
     }
 
 

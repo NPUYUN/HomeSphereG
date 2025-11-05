@@ -63,7 +63,7 @@ public class HomeSphereSystem {
      * HomeSphereSystem单例实例
      * 用于存储HomeSphereSystem类的唯一实例，实现单例模式
      */
-    private static HomeSphereSystem instance;
+    private static volatile HomeSphereSystem instance;
 
     /**
      * 私有构造函数，用于初始化HomeSphereSystem实例
@@ -82,7 +82,11 @@ public class HomeSphereSystem {
      */
     public static HomeSphereSystem getInstance(){
         if(instance == null){
-            instance = new HomeSphereSystem();
+            synchronized (HomeSphereSystem.class){
+                if(instance == null){
+                    instance = new HomeSphereSystem();
+                }
+            }
         }
         return instance;
     }

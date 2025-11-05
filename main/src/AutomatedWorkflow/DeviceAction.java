@@ -1,88 +1,48 @@
 package AutomatedWorkflow;
 
-import DeviceEquipment.AirConditioner;
+import AutomatedWorkflow.DeviceCommand.DeviceCommand;
+import AutomatedWorkflow.DeviceCommand.PowerOffCommand;
+import AutomatedWorkflow.DeviceCommand.PowerOnCommand;
+import AutomatedWorkflow.DeviceCommand.SetTemperatureCommand;
 import DeviceEquipment.Device;
 
 /**
  * 设备操作类
  */
 public class DeviceAction {
-    private Device device;
-    private String command;
-    private String parameters;
-
     /**
-     * 构造函数
-     * @param command 命令
-     * @param parameters 参数
-     * @param device 设备
+     * 创建设备命令对象
+     *
+     * @param commandType 命令类型字符串，支持"poweron"、"poweroff"、"settemperature"
+     * @param device 要操作的设备对象
+     * @param parameters 命令参数，对于温度设置命令为必需参数
+     * @return 返回对应的设备命令对象
+     * @throws IllegalArgumentException 当命令类型或设备为空，或参数不符合要求时抛出异常
      */
-    public DeviceAction(String command, String parameters, Device device) {
-        this.command = command;
-        this.parameters = parameters;
-        this.device = device;
-    }
+    public static DeviceCommand createCommand(String commandType, Device device, String parameters) {
+        if (commandType == null || device == null) {
+            throw new IllegalArgumentException("命令类型和设备不能为空");
+        }
 
-    /**
-     * 执行命令
-     * 根据命令类型执行相应的设备操作
-     * - powerOn: 开启设备
-     * - powerOff: 关闭设备
-     * - setTemperature: 设置空调目标温度（仅适用于空调设备）
-     */
-    public void execute() {
-        try{
-            // 检查设备是否存在
-            if (device == null) {
-                throw new IllegalArgumentException("设备不存在");
-            }
-
-            System.out.println("Executing command:" +  command + " with parameters：" +  parameters);
-            // 根据命令类型执行相应的操作
-            if (command.equals("powerOn")) {
-                device.powerOn();
-                System.out.println(device.getName() + " powered on");
-            } else if (command.equals("powerOff")) {
-                device.powerOff();
-                System.out.println(device.getName() + " powered off");
-            } else if (command.equals("setTemperature") && parameters != null) {
-                double temp = Double.parseDouble(parameters);
-                // 检查设备是否为空调类型，如果是则设置目标温度
-                if (device instanceof AirConditioner) {
-                    ((AirConditioner) device).setTargetTemp(temp);
-                    System.out.println(device.getName() + " target temperature set to " + temp);
-                    return;
+        // 根据命令类型创建相应的命令对象
+        switch (commandType.toLowerCase()) {
+            case "poweron":
+                return new PowerOnCommand(device);
+            case "poweroff":
+                return new PowerOffCommand(device);
+            case "settemperature":
+                if (parameters == null || parameters.trim().isEmpty()) {
+                    throw new IllegalArgumentException("设置温度命令需要参数");
                 }
-                // 忽略无效的温度参数
-                throw new IllegalArgumentException("无效的温度参数");
-            }
+                try {
+                    double temp = Double.parseDouble(parameters);
+                    return new SetTemperatureCommand(device, temp);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("无效的温度参数");
+                }
+            default:
+                throw new IllegalArgumentException("不支持的命令类型: " + commandType);
         }
-        catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    /**
-     * 获取设备
-     * @return 设备
-     */
-    public Device getDevice() {
-        return device;
-    }
-
-    /**
-     * 获取命令
-     * @return 命令
-     */
-    public String getCommand() {
-        return command;
-    }
-
-    /**
-     * 获取参数
-     * @return 参数
-     */
-    public String getParameters() {
-        return parameters;
     }
 }
+

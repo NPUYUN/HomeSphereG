@@ -98,7 +98,8 @@ public class Membership {
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Membership that){
+        if(obj instanceof Membership){
+            Membership that = (Membership) obj;
             return Objects.equals(user.getUserId(), that.user.getUserId()) &&
                     Objects.equals(household.getHouseholdId(), that.household.getHouseholdId());
         }

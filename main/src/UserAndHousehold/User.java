@@ -159,7 +159,8 @@ public class User {
      */
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof User user){
+        if(obj instanceof User){
+            User user = (User) obj;
             return user.userId == userId;
         }
         return false;

@@ -2,10 +2,16 @@ package Common;
 
 import AutomatedWorkflow.AutomationScene;
 import AutomatedWorkflow.DeviceAction;
+import AutomatedWorkflow.DeviceCommand.DeviceCommand;
 import DeviceEquipment.*;
+import EmissionReduction.HtmlRunningLogFormatter;
+import EmissionReduction.JsonRunningLogFormatter;
+import EmissionReduction.RunningLog;
+import EmissionReduction.XmlRunningLogFormatter;
 import UserAndHousehold.Household;
 import UserAndHousehold.Room;
 
+import java.io.*;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -49,7 +55,7 @@ public class CommandUI {
                         System.out.println();
                         System.out.println("=== 退出系统 ===");
                         System.out.println("感谢使用HomeSphereG系统，再见！");
-                        exit(0);
+                        return;
                     default:
                         System.out.println("无效选择，请重新输入");
                 }
@@ -302,24 +308,25 @@ public class CommandUI {
         Room guestBedroom = new Room(3, "次卧", 10);
 
         // 创建各种智能设备实例
-        Device airConditioner1 = new AirConditioner(1, "美的空调", airConditionerManufacturer);
-        Device airConditioner2 = new AirConditioner(2, "美的空调", airConditionerManufacturer);
-        Device airConditioner3 = new AirConditioner(3, "美的空调", airConditionerManufacturer);
-        Device bulbLight1 = new LightBulb(4, "LED灯", bulbLightManufacturer);
-        Device bulbLight2 = new LightBulb(5, "LED灯", bulbLightManufacturer);
-        Device bulbLight3 = new LightBulb(6, "LED灯", bulbLightManufacturer);
+        Device airConditioner1 = airConditionerManufacturer.createDevice(1, "美的空调", "AirConditioner");
+        Device airConditioner2 = airConditionerManufacturer.createDevice(2, "美的空调", "AirConditioner");
+        Device airConditioner3 = airConditionerManufacturer.createDevice(3, "美的空调", "AirConditioner");
 
-        Device smartLock = new SmartLock(7, "欧莱雅锁", smartLockManufacturer);
-        Device bathroomScale = new BathroomScale(8, "Scale", bathroomScaleManufacturer);
+        Device bulbLight1 = bulbLightManufacturer.createDevice(4, "LED灯", "LightBulb");
+        Device bulbLight2 = bulbLightManufacturer.createDevice(5, "LED灯", "LightBulb");
+        Device bulbLight3 = bulbLightManufacturer.createDevice(6, "LED灯", "LightBulb");
+
+        Device smartLock = smartLockManufacturer.createDevice(7, "欧莱雅锁", "SmartLock");
+        Device bathroomScale = bathroomScaleManufacturer.createDevice(8, "Scale", "BathroomScale");
 
         // 创建自动化场景
         AutomationScene morningScene = new AutomationScene(1, "早安场景", "早安");
-        DeviceAction morningAction = new DeviceAction("powerOn", "", airConditioner1);
-        morningScene.addAction(morningAction);
+        DeviceCommand morningCommand = DeviceAction.createCommand("setTemperature", airConditioner1, "25");
+        morningScene.addCommand(morningCommand);
 
         AutomationScene eveningScene = new AutomationScene(2, "晚安场景", "晚安");
-        DeviceAction eveningAction = new DeviceAction("setTemperature", "28", airConditioner2);
-        eveningScene.addAction(eveningAction);
+        DeviceCommand eveningCommand = DeviceAction.createCommand("setTemperature", airConditioner2, "18");
+        eveningScene.addCommand(eveningCommand);
 
         // 将设备分配至对应的房间
         livingroom.addDevice(airConditioner1);
@@ -346,8 +353,17 @@ public class CommandUI {
         } catch (Exception e) {
             System.out.println("添加家庭失败: " + e.getMessage());
         }
+        JsonRunningLogFormatter jsonFormatter = JsonRunningLogFormatter.getInstance();
+        HtmlRunningLogFormatter htmlFormatter = HtmlRunningLogFormatter.getInstance();
+        XmlRunningLogFormatter xmlFormatter = XmlRunningLogFormatter.getInstance();
 
         // 启动主菜单界面
         mainMenu();
+
+        // 保存为不同格式的文件
+        Command.saveHouseholdsToFile(jsonFormatter, "json");
+        Command.saveHouseholdsToFile(htmlFormatter, "html");
+        Command.saveHouseholdsToFile(xmlFormatter, "xml");
+
     }
 }
